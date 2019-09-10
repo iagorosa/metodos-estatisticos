@@ -1,0 +1,137 @@
+S.M. Stigler, "Do Robust Estimators Work with Real Data?"  The Annals of Statistics,
+1977, pp 1055-1098.
+Description: 
+The set is Michelson's 1879 determinations of the speed of light and a smaller sample of measures made by him in 1882.
+Stigler reports the "true" speed of light as 710.5 (299,710.5 km/sec). You might test both the 1879 and the 1882 sets of observations against this standard.
+arquivo: luz.dta
+
+data:
+(1)	Michelson's determinations of speed of light (+299 thousand km/sec), 1879
+(2)	Michelson's determinations of speed of light, 1882 
+
+data	velocidade (km/s)
+        +299000
+
+1	850
+1	740
+1	900
+1	1070
+1	930
+1	850
+1	950
+1	980
+1	980
+1	880
+1	1000
+1	980
+1	930
+1	650
+1	760
+1	810
+1	1000
+1	1000
+1	960
+1	960
+1	960
+1	940
+1	960
+1	940
+1	880
+1	800
+1	850
+1	880
+1	900
+1	840
+1	830
+1	790
+1	810
+1	880
+1	880
+1	830
+1	800
+1	790
+1	760
+1	800
+1	880
+1	880
+1	880
+1	860
+1	720
+1	720
+1	620
+1	860
+1	970
+1	950
+1	880
+1	910
+1	850
+1	870
+1	840
+1	840
+1	850
+1	840
+1	840
+1	840
+1	890
+1	810
+1	810
+1	820
+1	800
+1	770
+1	760
+1	740
+1	750
+1	760
+1	910
+1	920
+1	890
+1	860
+1	880
+1	720
+1	840
+1	850
+1	850
+1	780
+1	890
+1	840
+1	780
+1	810
+1	760
+1	810
+1	790
+1	810
+1	820
+1	850
+1	870
+1	870
+1	810
+1	740
+1	810
+1	940
+1	950
+1	800
+1	810
+1	870
+2	883
+2	816
+2	778
+2	796
+2	682
+2	711
+2	611
+2	599
+2	1051
+2	781
+2	578
+2	796
+2	774
+2	820
+2	772
+2	696
+2	573
+2	748
+2	748
+2	797
+2	851
+2	809
+2	723
