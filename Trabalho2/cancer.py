@@ -10,11 +10,13 @@ import numpy as np
 import scipy.stats as scs
 import pandas as pd
 import pylab as pl
+import seaborn as sns
 from statsmodels.stats.diagnostic import lilliefors
 import statsmodels.api as sm
 from statsmodels.formula.api import ols
 
 pl.style.use('default')
+# pl.style.use('./PlotStyle.mplstyle')
 
 # In[]
 
@@ -66,10 +68,11 @@ out_fp = pd.cut(fp, bins=bins_range, include_lowest=True, right=False)
 
 fp.hist(histtype='bar', bins=range(0,120,10), ec='black', zorder=2)
 pl.grid(axis='x')
-pl.title('Idade dos falso-positivos')
-pl.xlabel('Idade')
-pl.ylabel('Frequência')
+pl.title('Idade dos falso-positivos', fontsize=14)
+pl.xlabel('Idade', fontsize=12)
+pl.ylabel('Frequência', fontsize=12)
 pl.xticks(range(10,120,10))
+pl.savefig("./imgs/cancer/hist_falso-positivos.pdf", dpi=300)
 pl.show()
 
 
@@ -80,26 +83,28 @@ out_fn = pd.cut(fn, bins=bins_range, include_lowest=True, right=False)
 
 fn.hist(histtype='bar', bins=range(0, 120, 10), ec='black', zorder=2)
 pl.grid(axis='x')
-pl.title('Idade dos falso-negativos')
-pl.xlabel('Idade')
-pl.ylabel('Frequência')
+pl.title('Idade dos falso-negativos', fontsize=14)
+pl.xlabel('Idade',fontsize=12)
+pl.ylabel('Frequência', fontsize=12)
 pl.xticks(range(10,120,10))
+pl.savefig("./imgs/cancer/hist_falso-negativos.pdf", dpi=300)
 pl.show()
 
 
 # Boxplot Comparativo
-pl.boxplot([c[c['Diagn'] == 4]['Idade'], c[c['Diagn'] == 1]['Idade']], zorder=2)
+pl.boxplot([fp, fn], zorder=2)
 pl.xticks([1,2], ['falso-positivos', 'falso-negativos'])
 pl.ylabel('Idade')
 pl.title('Boxplot comparativo')
 pl.grid(axis='y', zorder=0)
+pl.savefig("./imgs/cancer/boxplot_comp_falso_neg_pos.pdf", dpi=300)
 pl.show()
 
 # TABELAS DE FREQUÊNCIA
 freq_fp =  out_fp.value_counts(sort=False)
 freq_fp = pd.DataFrame({"Freq": freq_fp})
 freq_fp['Acum.'] = freq_fp['Freq'].cumsum()
-freq_fp['Rel. Acum.'] = (freq_fp['Freq']/freq_fp['Freq'].sum()).cumsum()*100
+freq_fp['Rel. Acum.'] = ((freq_fp['Freq']/freq_fp['Freq'].sum()).cumsum()*100).map('{:,.3f}'.format)
 print()
 print(freq_fp)
 print()
@@ -107,12 +112,24 @@ print()
 freq_fn =  out_fn.value_counts(sort=False)
 freq_fn = pd.DataFrame({"Freq": freq_fn})
 freq_fn['Acum.'] = freq_fn['Freq'].cumsum()
-freq_fn['Rel. Acum.'] = (freq_fn['Freq']/freq_fn['Freq'].sum()).cumsum()*100
+freq_fn['Rel. Acum.'] = ((freq_fn['Freq']/freq_fn['Freq'].sum()).cumsum()*100).map('{:,.3f}'.format)
 print(freq_fn)
 print()
 
 ### COMPARAÇÃO DA NORMAL DAS DUAS
 ### FREQUENCIAS ACUMULADAS ABSULUTAS E RELATIVAS NA TAB. FREQUENCIA
+
+#%%
+
+sns.kdeplot(fn, label='falso-negativo', shade=1, lw=2)
+sns.kdeplot(fp, label='falso-positivo', shade=1, lw=2, color='red')
+pl.show()
+
+#%%
+
+sns.distplot(fn, hist=True, label='falso-negativo')
+sns.distplot(fp, hist=True, label='falso-positivo', color='red')
+pl.show()
 
 #%%
 
@@ -223,21 +240,25 @@ p_val_jovem =(scs.norm.cdf(z_jovem))
 
 # letra a)
 doentes = c[(c['Diagn'] == 1) | (c['Diagn'] == 3)]
+# doentes = doentes[doentes['N'] < 30]
 
 pl.scatter(doentes['Idade'], doentes['N'], ec='black')
 pl.ylabel("Concentração de Nitrogênio (N)")
 pl.xlabel("Idade")
 pl.title("Gráfico de concetração de Nitrogênio por Idade")
 
+cor = doentes[['Idade', 'N']].corr()
+# pl.text(20, 52,)
+
 # letra b)
-a, b, *resto = scs.linregress(doentes['Idade'], doentes['N'])
-x_ = np.linspace(doentes['Idade'].min(), doentes['Idade'].max(), 100)
-pl.plot(x_, a*x_+b, 'r')
-pl.text(80,52, r'$C = \beta I + \alpha$' +'\nC = '+str(round(a, 3))+'I+'+str(round(b, 3)), bbox=dict(facecolor='red', alpha=0.4))
+a1, b1, *resto1 = scs.linregress(doentes['Idade'], doentes['N'])
+x_1 = np.linspace(doentes['Idade'].min(), doentes['Idade'].max(), 100)
+pl.plot(x_1, a1*x_1+b1, 'r')
+pl.text(80,52, r'$C = \beta I + \alpha$' +'\nC = '+str(round(a1, 3))+'I+'+str(round(b1, 3)), bbox=dict(facecolor='red', alpha=0.4))
 pl.show()
 
 # letra c)
-mod = ols('Idade ~ C(N)', data=doentes).fit()
+mod = ols('Idade ~ N', data=doentes).fit()
 anova_table_doentes = sm.stats.anova_lm(mod, typ=2)
 print()
 display(anova_table_doentes)
@@ -253,20 +274,34 @@ pl.xlabel("Idade")
 pl.title("Gráfico de concetração de Nitrogênio por Idade")
 
 # letra e)
-a, b, *resto = scs.linregress(nao_doentes['Idade'], nao_doentes['N'])
-x_ = np.linspace(nao_doentes['Idade'].min(), nao_doentes['Idade'].max(), 100)
-pl.plot(x_, a*x_+b, 'r')
-pl.text(10,40, r'$C = \beta I + \alpha$' +'\nC = '+str(round(a, 3))+'I+'+str(round(b, 3)), bbox=dict(facecolor='red', alpha=0.4))
+a2, b2, *resto2 = scs.linregress(nao_doentes['Idade'], nao_doentes['N'])
+x_2 = np.linspace(nao_doentes['Idade'].min(), nao_doentes['Idade'].max(), 100)
+pl.plot(x_2, a2*x_2+b2, 'r')
+pl.text(10,40, r'$C = \beta I + \alpha$' +'\nC = '+str(round(a2, 3))+'I+'+str(round(b2, 3)), bbox=dict(facecolor='red', alpha=0.4))
 pl.show()
 
 # letra f)
-mod = ols('Idade ~ C(N)', data=nao_doentes).fit()
+mod = ols('Idade ~ N', data=nao_doentes).fit()
 anova_table_na_doentes = sm.stats.anova_lm(mod, typ=2)
 print()
-display(anova_table_na_doentes)
+print(anova_table_na_doentes)
 print()
 
 
+x_3 = np.linspace(min(doentes['Idade'].min(), nao_doentes['Idade'].min()), max(doentes['Idade'].max(), nao_doentes['Idade'].max()), 100)
+pl.plot(x_3, a1*x_3+b1, 'b', label="Doentes")
+pl.plot(x_3, a2*x_3+b2, 'r', label="Não doentes")
+pl.legend()
+pl.show()
+
+
+# comp
+pl.scatter(doentes['Idade'], doentes['N'], ec='black')
+pl.scatter(nao_doentes['Idade'], nao_doentes['N'], ec='black')
+pl.ylabel("Concentração de Nitrogênio (N)")
+pl.xlabel("Idade")
+
+
 
 
 #%%
@@ -274,3 +309,4 @@ print()
 
 
 #%%
+
