@@ -162,10 +162,13 @@ lil = lilliefors(c.LDH)
 
 pl.text(87, 0.0722, 'Shapiro: '+str(round(s[1], 5) )+'\nLilliefors: '+str(round(lil[1], 5)), bbox=dict(facecolor='red', alpha=0.4), zorder=4 )
 
+pl.savefig("./imgs/cancer/hist_ldh_normal.pdf")
 pl.show()
 
 # letra a) - medidas descritivas
 tab_LDH_desc = c.LDH.describe()
+
+
 
 # letra b) 
 # teste de normalidade no grafico
@@ -185,8 +188,10 @@ c['jovem'] = c['Idade'] <= 54
 # Boxplot Comparativo de N
 pl.boxplot([c[c['jovem'] == True]['N'], c[c['jovem'] == False]['N']])
 pl.xticks([1,2], ['jovens', 'idosos'])
+pl.grid(axis='y')
 pl.ylabel('N')
 pl.title('Boxplot comparativo -- Nitrogênio na Ureia')
+pl.savefig("imgs/cancer/boxplot_nitrogenio.pdf")
 pl.show()
 
 tab_desc_N = pd.concat([c[c['jovem'] == True]['N'].describe(), c[c['jovem'] == False]['N'].describe()], axis=1).astype(float).applymap('{:,.3f}'.format)
@@ -212,7 +217,32 @@ z_idoso = (mu_obs - mu)/(std / len(c[c['jovem'] == False]['N'])**0.5)
 z_c_idoso = scs.norm.ppf(1-alpha)
 p_val_idoso =(1-scs.norm.cdf(z_idoso))
 
-# Fazer grafico
+# Histograma
+c[c.jovem == False]['N'].hist(histtype='bar', density=True, bins=range(0,61,10), ec='black', zorder=2)
+pl.grid(axis='x')
+pl.title('Nitrogênio na Ureia')
+pl.xlabel('N')
+pl.ylabel('Frequência')
+pl.xticks(range(10,61,10))
+
+# estatistica
+mu, std = scs.norm.fit(c[c.jovem == False]['N'])
+std = 7
+
+# Plot the PDF.
+xmin, xmax = pl.xlim()
+x = np.linspace(xmin, xmax, 100)
+p = scs.norm.pdf(x, mu, std)
+pl.plot(x, p, 'r--', linewidth=2)
+
+s   = scs.shapiro(c[c.jovem == False]['N'])
+lil = lilliefors(c[c.jovem == False]['N'])
+
+# pl.text(52, 0.063, 'Shapiro: '+str(round(s[1], 5) )+'\nLilliefors: '+str(round(lil[1], 5)), bbox=dict(facecolor='red', alpha=0.4), zorder=4 )
+
+pl.savefig("./imgs/cancer/hist_N_normal_idoso.pdf")
+pl.show()
+
 
 # letra c)
 # Teste de hipotese:
@@ -228,6 +258,32 @@ z_jovem = (mu_obs - mu)/(std / len(c[c['jovem'] == True]['N'])**0.5)
 
 z_c_jovem = scs.norm.ppf(alpha)
 p_val_jovem =(scs.norm.cdf(z_jovem))
+
+# Histograma
+c[c.jovem == True]['N'].hist(histtype='bar', density=True, bins=range(0,41,10), ec='black', zorder=2)
+pl.grid(axis='x')
+pl.title('Nitrogênio na Ureia')
+pl.xlabel('N')
+pl.ylabel('Frequência')
+pl.xticks(range(10,41,10))
+
+# estatistica
+mu, std = scs.norm.fit(c[c.jovem == True]['N'])
+std = 5
+
+# Plot the PDF.
+xmin, xmax = pl.xlim()
+x = np.linspace(xmin, xmax, 100)
+p = scs.norm.pdf(x, mu, std)
+pl.plot(x, p, 'r--', linewidth=2)
+
+s   = scs.shapiro(c[c.jovem == True]['N'])
+lil = lilliefors(c[c.jovem == True]['N'])
+
+# pl.text(52, 0.063, 'Shapiro: '+str(round(s[1], 5) )+'\nLilliefors: '+str(round(lil[1], 5)), bbox=dict(facecolor='red', alpha=0.4), zorder=4 )
+
+pl.savefig("./imgs/cancer/hist_N_normal_jovem.pdf")
+pl.show()
 
 # Fazer grafico
 
@@ -245,16 +301,17 @@ doentes = c[(c['Diagn'] == 1) | (c['Diagn'] == 3)]
 pl.scatter(doentes['Idade'], doentes['N'], ec='black')
 pl.ylabel("Concentração de Nitrogênio (N)")
 pl.xlabel("Idade")
-pl.title("Gráfico de concetração de Nitrogênio por Idade")
+pl.title("Gráfico de Concentração de Nitrogênio por Idade -- Doentes")
 
-cor = doentes[['Idade', 'N']].corr()
-# pl.text(20, 52,)
+cor = doentes[['Idade', 'N']].corr().iloc[0, 1]
+# pl.text(20, 55, "Correlação: " + str(round(cor, 3)), bbox=dict(facecolor='red', alpha=0.4))
 
 # letra b)
 a1, b1, *resto1 = scs.linregress(doentes['Idade'], doentes['N'])
 x_1 = np.linspace(doentes['Idade'].min(), doentes['Idade'].max(), 100)
 pl.plot(x_1, a1*x_1+b1, 'r')
 pl.text(80,52, r'$C = \beta I + \alpha$' +'\nC = '+str(round(a1, 3))+'I+'+str(round(b1, 3)), bbox=dict(facecolor='red', alpha=0.4))
+pl.savefig("imgs/cancer/scatter_N_doentes_reg.pdf")
 pl.show()
 
 # letra c)
@@ -271,13 +328,19 @@ nao_doentes = c[(c['Diagn'] == 2) | (c['Diagn'] == 4)]
 pl.scatter(nao_doentes['Idade'], nao_doentes['N'], ec='black')
 pl.ylabel("Concentração de Nitrogênio (N)")
 pl.xlabel("Idade")
-pl.title("Gráfico de concetração de Nitrogênio por Idade")
+pl.title("Gráfico de Concetração de Nitrogênio por Idade -- Não Doentes")
+
+cor = nao_doentes[['Idade', 'N']].corr().iloc[0, 1]
+# pl.text(10, 42, "Correlação: " + str(round(cor, 3)), bbox=dict(facecolor='red', alpha=0.4))
+
 
 # letra e)
 a2, b2, *resto2 = scs.linregress(nao_doentes['Idade'], nao_doentes['N'])
 x_2 = np.linspace(nao_doentes['Idade'].min(), nao_doentes['Idade'].max(), 100)
 pl.plot(x_2, a2*x_2+b2, 'r')
 pl.text(10,40, r'$C = \beta I + \alpha$' +'\nC = '+str(round(a2, 3))+'I+'+str(round(b2, 3)), bbox=dict(facecolor='red', alpha=0.4))
+
+pl.savefig("imgs/cancer/scatter_N_naodoentes_reg.pdf")
 pl.show()
 
 # letra f)
