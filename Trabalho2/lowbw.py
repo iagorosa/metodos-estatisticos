@@ -679,21 +679,22 @@ pl.boxplot([X[X.race == 1]['bwt'], X[X.race == 2]['bwt'], X[X.race == 3]['bwt']]
 
 #%%
 
-def teste_media(med_x, med_y, s_x, s_y, n_x, n_y, alfa):
+def teste_media(med_x, med_y, s_x, s_y, n_x, n_y, mu, alfa):
     df = n_x + n_y - 2
     # Estatisticas de teste
-    x_bar = med_x - med_y
+    x_bar = abs(med_x - med_y)
 
     s_comb = np.sqrt(  ( (n_x - 1)*s_x**2 + (n_y-1)*s_y**2 ) / df  )
+    # print(x_bar, s_x, s_y, s_comb)
 
     z = (x_bar - mu) / (s_comb * np.sqrt(1/n_x + 1/n_y) )
 
     # print('t:', t) 
 
-    z_c = scs.norm.ppf(1-alfa, df)
-    p_val = 2*(1-scs.norm.cdf(z, df))
+    z_c = scs.norm.ppf(1-alfa)
+    p_val = 2*(1-scs.norm.cdf(z))
 
-    print(z, z_c, p_val)
+    print(round(z, 3), round(z_c, 3), round(p_val, 3))
     # print(sc.stats.ttest_ind(machos, femeas, equal_var=True))
 
 
@@ -702,8 +703,73 @@ def teste_media(med_x, med_y, s_x, s_y, n_x, n_y, alfa):
 # z_c_idoso = scs.norm.ppf(1-alpha)
 # p_val_idoso =(1-scs.norm.cdf(z_idoso))
 
-fm = X[X.smoke == True]['bwt']
-nfm = X[X.smoke == False]['bwt']
-teste_media(fm.mean(), nfm.mean(), fm.std(), nfm.std(), len(fm), len(nfm), 0.05)
+vars = ['smoke', 'race2', 'ptl2', 'ht', 'ui', 'ftv2']
+
+for v in vars:
+    fm = X[X[v] == True]['bwt']
+    nfm = X[X[v] == False]['bwt']
+    mu = 0
+    alfa = 0.05
+    print(v+":", end=' ')
+    teste_media(fm.mean(), nfm.mean(), fm.std(), nfm.std(), len(fm), len(nfm), mu, alfa)
+
+#%%
+
+mod = ols('bwt ~ lwt', data=X).fit()
+anova_table_lwt = sm.stats.anova_lm(mod, typ=2)
+anova_table_lwt = (anova_table_lwt.replace({np.nan: 0})).applymap('{:,.3f}'.format)
+print()
+display(anova_table_lwt)
+print()
+
+#%%
+
+mod = ols('bwt ~ age', data=X).fit()
+anova_table_age = sm.stats.anova_lm(mod, typ=2)
+anova_table_age = (anova_table_age.replace({np.nan: 0})).applymap('{:,.3f}'.format)
+print()
+display(anova_table_age)
+print()
+
+#%%
+
+pl.scatter(X['bwt'], X['lwt'], ec='black')
+pl.xticks(range(1000, 5001, 500))
+pl.ylabel("lwt")
+pl.xlabel("bwt")
+# pl.title("Gráfico de dispersão bwt vs lwt")
+pl.title("Gráfico do peso ao nascer por peso da mãe")
+
+cor = X[['bwt', 'lwt']].corr().iloc[1, 0]
+pl.text(800, 240, "Correlação: " + str(round(cor, 3)), bbox=dict(facecolor='red', alpha=0.4))
+
+# a1, b1, *resto1 = scs.linregress(X['bwt'], X['lwt'])
+# x_1 = np.linspace(X['bwt'].min(), X['bwt'].max(), 100)
+# pl.plot(x_1, a1*x_1+b1, 'red')
+# pl.text(800,230, r'$Y = \beta X + \alpha$' +'\nC = '+str(round(a1, 3))+'I+'+str(round(b1, 3)), bbox=dict(facecolor='red', alpha=0.4))
+pl.savefig("imgs/lowbw/scatter_bwt_lwt.pdf")
+pl.show()
+
+    
+
+pl.scatter(X['bwt'], X['age'], ec='black')
+pl.xticks(range(1000, 5001, 500))
+pl.ylabel("age")
+pl.xlabel("bwt")
+pl.title("Gráfico da idade por peso da mãe")
+
+cor = X[['bwt', 'age']].corr().iloc[1, 0]
+pl.text(800, 43, "Correlação: " + str(round(cor, 3)), bbox=dict(facecolor='red', alpha=0.4))
+
+# a1, b1, *resto1 = scs.linregress(X['bwt'], X['age'])
+# x_1 = np.linspace(X['bwt'].min(), X['bwt'].max(), 100)
+# pl.plot(x_1, a1*x_1+b1, 'red')
+# pl.text(800,41, r'$Y = \beta X + \alpha$' +'\nC = '+str(round(a1, 3))+'I+'+str(round(b1, 3)), bbox=dict(facecolor='red', alpha=0.4))
+pl.savefig("imgs/lowbw/scatter_bwt_age.pdf")
+pl.show()
+
+corr = X[['bwt', 'age']].corr()
+print(corr)
+
 
 #%%
